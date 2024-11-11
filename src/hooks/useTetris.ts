@@ -5,6 +5,30 @@ import { GameState, Shape, Position } from '../types/types';
 const GRID_WIDTH = 10;
 const GRID_HEIGHT = 20;
 
+// 添加计分规则常量
+const SCORE_TABLE = {
+    SINGLE: 100,    // 消除 1 行
+    DOUBLE: 300,    // 消除 2 行
+    TRIPLE: 500,    // 消除 3 行
+    TETRIS: 800,    // 消除 4 行
+} as const;
+
+// 计算分数的方法
+const calculateScore = (lines: number): number => {
+    switch (lines) {
+        case 1:
+            return SCORE_TABLE.SINGLE;
+        case 2:
+            return SCORE_TABLE.DOUBLE;
+        case 3:
+            return SCORE_TABLE.TRIPLE;
+        case 4:
+            return SCORE_TABLE.TETRIS;
+        default:
+            return 0;
+    }
+};
+
 export const useTetris = () => {
     const [gameState, setGameState] = useState<GameState>({
         grid: Array(GRID_HEIGHT).fill(Array(GRID_WIDTH).fill(0)),
@@ -22,7 +46,9 @@ export const useTetris = () => {
     , []);
 
     const generateNewPiece = useCallback((): Shape => {
-        const shapes = Object.values(SHAPES);
+        const shapes = Object.values(SHAPES).map(shape =>
+            shape.map(row => [...row])
+        );
         return shapes[Math.floor(Math.random() * shapes.length)];
     }, []);
 
@@ -101,6 +127,7 @@ export const useTetris = () => {
     }, [gameState, isValidMove, rotatePiece]);
 
     const mergePieceToGrid = useCallback(() => {
+        // 深拷贝网格数组
         const newGrid = gameState.grid.map(row => [...row]);
         const piece = gameState.currentPiece;
         const pos = gameState.currentPosition;
@@ -114,20 +141,29 @@ export const useTetris = () => {
                 }
             }
         }
+
+        // 确保在 drop 函数中使用这个新网格
         return newGrid;
     }, [gameState]);
 
+    // 修改 clearLines 方法，使用 calculateScore
     const clearLines = useCallback(() => {
-        const newGrid = gameState.grid.filter(row => row.some(cell => cell === 0));
+        // 只过滤完整的行（所有格子都被填满的行）
+        const newGrid = gameState.grid.filter(row => !row.every(cell => cell !== 0));
         const clearedLines = GRID_HEIGHT - newGrid.length;
         const score = calculateScore(clearedLines);
 
+        // 补充新的空行
         while (newGrid.length < GRID_HEIGHT) {
             newGrid.unshift(Array(GRID_WIDTH).fill(0));
         }
 
-        return { newGrid, score };
-    }, [gameState.grid]);
+        return {
+            newGrid,
+            score,
+            newLevel: Math.floor((gameState.score + score) / 1000) + 1
+        };
+    }, [gameState.grid, gameState.score]);
 
 
     const drop = useCallback(() => {
@@ -140,28 +176,38 @@ export const useTetris = () => {
         };
 
         if (isValidMove(newPosition, gameState.currentPiece)) {
+            // 如果可以继续下落
             setGameState(prev => ({
                 ...prev,
                 currentPosition: newPosition
             }));
         } else {
+            // 如果不能继续下落，固定当前方块并生成新方块
             const newGrid = mergePieceToGrid();
-            const { newGrid: clearedGrid, score } = clearLines();
+            const { newGrid: clearedGrid, score, newLevel } = clearLines();
 
-            const nextPiece = generateNewPiece();
+            const nextPiece = gameState.nextPiece || generateNewPiece(); // 使用已经生成的下一个方块
             const startPosition = { x: Math.floor(GRID_WIDTH / 2) - 1, y: 0 };
 
+            // 检查新方块是否可以放置
             const isGameOver = !isValidMove(startPosition, nextPiece);
 
-            setGameState(prev => ({
-                ...prev,
-                grid: clearedGrid,
-                currentPiece: nextPiece,
-                currentPosition: startPosition,
-                nextPiece: generateNewPiece(),
-                score: prev.score + score,
-                isGameOver: isGameOver
-            }));
+            if (!isGameOver) {
+                setGameState(prev => ({
+                    ...prev,
+                    grid: clearedGrid,
+                    currentPiece: nextPiece,
+                    currentPosition: startPosition,
+                    nextPiece: generateNewPiece(), // 生成新的下一个方块
+                    score: prev.score + score,
+                    level: newLevel
+                }));
+            } else {
+                setGameState(prev => ({
+                    ...prev,
+                    isGameOver: true
+                }));
+            }
         }
     }, [gameState, isValidMove, mergePieceToGrid, clearLines, generateNewPiece]);
 
@@ -208,24 +254,16 @@ export const useTetris = () => {
 
         if (gameState.isGameOver || gameState.isPaused || !gameState.currentPiece) return;
 
-        const dropInterval = Math.max(100, 1000 - (gameState.level - 1) * 100);
-        const intervalId = setInterval(() => {
-            drop();
-        }, dropInterval);
+        const speed = Math.max(100, 1000 - (gameState.level - 1) * 100); // 随等级加快
+        const intervalId = setInterval(drop, speed);
 
         return () => clearInterval(intervalId);
-    }, [
-        gameState.isGameOver,
-        gameState.isPaused,
-        gameState.currentPiece,
-        gameState.level,
-        drop
-    ]);
+    }, [gameState.isGameOver, gameState.isPaused, gameState.currentPiece, gameState.level, drop]);
 
     // 键盘控制
     useEffect(() => {
         const handleKeyPress = (event: KeyboardEvent) => {
-            if (gameState.isGameOver) return;
+            if (gameState.isGameOver || gameState.isPaused) return;
 
             switch (event.key) {
                 case 'ArrowLeft':
@@ -240,6 +278,9 @@ export const useTetris = () => {
                 case 'ArrowUp':
                     rotate();
                     break;
+                case ' ':  // 空格键
+                    hardDrop();
+                    break;
                 case 'p':
                 case 'P':
                     pauseGame();
@@ -253,7 +294,44 @@ export const useTetris = () => {
 
         window.addEventListener('keydown', handleKeyPress);
         return () => window.removeEventListener('keydown', handleKeyPress);
-    }, [gameState.isGameOver, moveLeft, moveRight, drop, rotate, pauseGame, resetGame]);
+    }, [
+        gameState.isGameOver,
+        gameState.isPaused,
+        moveLeft,
+        moveRight,
+        drop,
+        rotate,
+        pauseGame,
+        resetGame
+    ]);
+
+    const hardDrop = useCallback(() => {
+        if (gameState.isGameOver || gameState.isPaused || !gameState.currentPiece) return;
+
+        let newY = gameState.currentPosition.y;
+
+        // 找到方块可以下落的最低位置
+        while (isValidMove(
+            { x: gameState.currentPosition.x, y: newY + 1 },
+            gameState.currentPiece
+        )) {
+            newY++;
+        }
+
+        // 直接将方块放置到最低位置
+        const newPosition = {
+            x: gameState.currentPosition.x,
+            y: newY
+        };
+
+        setGameState(prev => ({
+            ...prev,
+            currentPosition: newPosition
+        }));
+
+        // 立即触发一次 drop 来固定方块
+        drop();
+    }, [gameState, isValidMove, drop]);
 
     return {
         gameState,
@@ -261,6 +339,7 @@ export const useTetris = () => {
         moveRight,
         rotate,
         drop,
+        hardDrop,
         startGame,
         pauseGame,
         resetGame

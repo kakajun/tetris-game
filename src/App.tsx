@@ -12,12 +12,15 @@ const GameContainer = styled.div`
     padding: 20px;
     background: #1a1a1a;
     min-height: 100vh;
+    color: white;
+    font-family: Arial, sans-serif;
 `;
 
 const ButtonContainer = styled.div`
     display: flex;
     gap: 10px;
     margin-top: 20px;
+    justify-content: center;
 `;
 
 const GameButton = styled.button`
@@ -35,7 +38,7 @@ const GameButton = styled.button`
     }
 
     &:disabled {
-        background-color: #333;
+        opacity: 0.5;
         cursor: not-allowed;
     }
 `;
