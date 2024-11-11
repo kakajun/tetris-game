@@ -8,17 +8,19 @@
     "@types/react-dom": "^18.3.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-     "vite": "^5.4.8",
+    "vite": "^5.4.8",
     "styled-components": "^5.3.6",
     "typescript": "^5.5.4"
   },
   "devDependencies": {
-   "gh-pages": "^6.1.1",
-   "@vitejs/plugin-react": "^4.3.2"
+    "gh-pages": "^6.1.1",
+    "@vitejs/plugin-react": "^4.3.2",
+    "prettier": "^3.3.3"
   },
   "scripts": {
     "dev": "vite  --host 0.0.0.0",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "format": "prettier --write  \"src/**/*.{js,ts,json,tsx,less,html,md}\""
   }
 }

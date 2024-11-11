@@ -1,5 +1,16 @@
 # 俄罗斯方块操作指南
 
+## 技术栈
+
+- React
+- TypeScript
+- Vite
+- Styled Components
+
+## 预览地址
+
+[俄罗斯方块](https://kakajun.github.io/tetris-game/)
+
 ## 基本操作
 
 ### 移动控制
