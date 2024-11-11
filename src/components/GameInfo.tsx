@@ -1,49 +1,4 @@
 import React from 'react'
-import styled from 'styled-components'
-
-const InfoContainer = styled.div`
-  background: #1a1a1a;
-  padding: 20px;
-  border-radius: 5px;
-  color: white;
-  min-width: 200px;
-`
-
-const InfoSection = styled.div`
-  margin-bottom: 20px;
-`
-
-const InfoTitle = styled.h3`
-  margin: 0 0 10px 0;
-  color: #00f0f0;
-`
-
-const ScoreText = styled.div`
-  font-size: 24px;
-  font-weight: bold;
-  color: #f0f000;
-`
-
-const LevelText = styled.div`
-  font-size: 20px;
-  color: #00f000;
-`
-
-const NextPieceContainer = styled.div`
-  display: grid;
-  grid-template-rows: repeat(4, 20px);
-  grid-template-columns: repeat(4, 20px);
-  gap: 1px;
-  background: #111;
-  padding: 10px;
-`
-
-const Cell = styled.div<{ value: number }>`
-  width: 20px;
-  height: 20px;
-  background-color: ${(props) => (props.value ? '#00f0f0' : 'transparent')};
-  border: 1px solid ${(props) => (props.value ? '#4a4a4a' : 'transparent')};
-`
 
 interface GameInfoProps {
   score: number
@@ -53,20 +8,20 @@ interface GameInfoProps {
 
 export const GameInfo: React.FC<GameInfoProps> = ({ score, level, nextPiece }) => {
   return (
-    <InfoContainer>
-      <InfoSection>
-        <InfoTitle>分数</InfoTitle>
-        <ScoreText>{score}</ScoreText>
-      </InfoSection>
+    <div className="bg-[#1a1a1a] p-5 rounded text-white min-w-[200px]">
+      <div className="mb-5">
+        <h3 className="m-0 mb-2.5 text-[#00f0f0]">分数</h3>
+        <div className="text-6 font-bold text-[#f0f000]">{score}</div>
+      </div>
 
-      <InfoSection>
-        <InfoTitle>等级</InfoTitle>
-        <LevelText>{level}</LevelText>
-      </InfoSection>
+      <div className="mb-5">
+        <h3 className="m-0 mb-2.5 text-[#00f0f0]">等级</h3>
+        <div className="text-5 text-[#00f000]">{level}</div>
+      </div>
 
-      <InfoSection>
-        <InfoTitle>下一个方块</InfoTitle>
-        <NextPieceContainer>
+      <div className="mb-5">
+        <h3 className="m-0 mb-2.5 text-[#00f0f0]">下一个方块</h3>
+        <div className="grid grid-rows-[repeat(4,20px)] grid-cols-[repeat(4,20px)] gap-[1px] bg-[#111] p-2.5">
           {nextPiece
             ? Array(4)
                 .fill(null)
@@ -74,19 +29,23 @@ export const GameInfo: React.FC<GameInfoProps> = ({ score, level, nextPiece }) =
                   Array(4)
                     .fill(null)
                     .map((_, x) => (
-                      <Cell
+                      <div
                         key={`${y}-${x}`}
-                        value={
-                          y < nextPiece.length && x < nextPiece[0].length ? nextPiece[y][x] : 0
-                        }
+                        className={`w-[20px] h-[20px] ${
+                          y < nextPiece.length && x < nextPiece[0].length && nextPiece[y][x]
+                            ? 'bg-[#00f0f0] border-[1px] border-[#4a4a4a]'
+                            : 'bg-transparent border-transparent'
+                        }`}
                       />
                     ))
                 )
             : Array(16)
                 .fill(null)
-                .map((_, i) => <Cell key={i} value={0} />)}
-        </NextPieceContainer>
-      </InfoSection>
-    </InfoContainer>
+                .map((_, i) => (
+                  <div key={i} className="w-[20px] h-[20px] bg-transparent border-transparent" />
+                ))}
+        </div>
+      </div>
+    </div>
   )
 }

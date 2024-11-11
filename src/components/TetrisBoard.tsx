@@ -1,41 +1,16 @@
 import React from 'react'
-import styled from 'styled-components'
 
-const StyledBoard = styled.div`
-  display: grid;
-  grid-template-rows: repeat(20, 30px);
-  grid-template-columns: repeat(10, 30px);
-  gap: 1px;
-  background: #111;
-  padding: 10px;
-  border-radius: 5px;
-`
-
-const Cell = styled.div<{ value: number }>`
-  width: 30px;
-  height: 30px;
-  border: 1px solid #333;
-  background-color: ${(props) => {
-    switch (props.value) {
-      case 1:
-        return '#00f0f0' // I
-      case 2:
-        return '#0000f0' // J
-      case 3:
-        return '#f0a000' // L
-      case 4:
-        return '#f0f000' // O
-      case 5:
-        return '#00f000' // S
-      case 6:
-        return '#a000f0' // T
-      case 7:
-        return '#f00000' // Z
-      default:
-        return '#000' // 空
-    }
-  }};
-`
+// 定义颜色映射对象，方便管理不同方块的颜色
+const PIECE_COLORS = {
+  1: '#00f0f0', // I
+  2: '#0000f0', // J
+  3: '#f0a000', // L
+  4: '#f0f000', // O
+  5: '#00f000', // S
+  6: '#a000f0', // T
+  7: '#f00000', // Z
+  0: '#000' // 空
+}
 
 interface TetrisBoardProps {
   grid: number[][]
@@ -48,10 +23,8 @@ export const TetrisBoard: React.FC<TetrisBoardProps> = ({
   currentPiece,
   currentPosition
 }) => {
-  // 创建一个合并了当前方块的临时网格用于显示
   const displayGrid = grid.map((row) => [...row])
 
-  // 将当前方块合并到显示网格中
   if (currentPiece) {
     for (let y = 0; y < currentPiece.length; y++) {
       for (let x = 0; x < currentPiece[y].length; x++) {
@@ -67,8 +40,18 @@ export const TetrisBoard: React.FC<TetrisBoardProps> = ({
   }
 
   return (
-    <StyledBoard>
-      {displayGrid.map((row, y) => row.map((cell, x) => <Cell key={`${y}-${x}`} value={cell} />))}
-    </StyledBoard>
+    // StyledBoard styles
+    <div className="grid grid-rows-[repeat(20,30px)] grid-cols-[repeat(10,30px)] gap-[1px] bg-[#111] p-2.5 rounded">
+      {displayGrid.map((row, y) =>
+        row.map((cell, x) => (
+          // Cell styles
+          <div
+            key={`${y}-${x}`}
+            className="w-[30px] h-[30px] border-[1px] border-[#333]"
+            style={{ backgroundColor: PIECE_COLORS[cell as keyof typeof PIECE_COLORS] }}
+          />
+        ))
+      )}
+    </div>
   )
 }

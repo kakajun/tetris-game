@@ -2,25 +2,36 @@
   "name": "tetris-game",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "dependencies": {
-    "@types/node": "^22.7.4",
-    "@types/react": "^18.3.11",
-    "@types/react-dom": "^18.3.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "vite": "^5.4.8",
-    "styled-components": "^5.3.6",
-    "typescript": "^5.5.4"
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "gh-pages": "^6.1.1",
-    "@vitejs/plugin-react": "^4.3.2",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "gh-pages": "^6.2.0",
+    "esprint": "^3.6.0",
+    "@typescript-eslint/eslint-plugin": "^7.2.0",
+    "@typescript-eslint/parser": "^7.2.0",
+    "@unocss/preset-rem-to-px": "^0.64.0",
+    "@unocss/transformer-attributify-jsx": "^0.64.0",
+    "@unocss/preset-attributify": "^0.64.0",
+    "@vitejs/plugin-react": "^4.3.3",
+    "@eslint/eslintrc": "^3.1.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.6",
+    "unocss": "^0.64.0",
+    "vite": "^5.4.11",
+    "typescript": "^5.6.3",
     "prettier": "^3.3.3"
   },
   "scripts": {
     "dev": "vite  --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview",
+    "lint": "esprint check --workers=4 --fix",
     "format": "prettier --write  \"src/**/*.{js,ts,json,tsx,less,html,md}\""
   }
 }
