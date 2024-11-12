@@ -1,27 +1,23 @@
 import React from 'react'
-
-// 定义颜色映射对象，方便管理不同方块的颜色
-const PIECE_COLORS = {
-  1: '#00f0f0', // I
-  2: '#0000f0', // J
-  3: '#f0a000', // L
-  4: '#f0f000', // O
-  5: '#00f000', // S
-  6: '#a000f0', // T
-  7: '#f00000', // Z
-  0: '#000' // 空
-}
+import { PIECE_COLORS } from '../constants/tetrominos'
+import { GameOverModal } from './GameOverModal'
 
 interface TetrisBoardProps {
   grid: number[][]
   currentPiece: number[][] | null
   currentPosition: { x: number; y: number }
+  isGameOver: boolean
+  score: number
+  onRestart: () => void
 }
 
 export const TetrisBoard: React.FC<TetrisBoardProps> = ({
   grid,
   currentPiece,
-  currentPosition
+  currentPosition,
+  isGameOver,
+  score,
+  onRestart
 }) => {
   const displayGrid = grid.map((row) => [...row])
 
@@ -40,18 +36,23 @@ export const TetrisBoard: React.FC<TetrisBoardProps> = ({
   }
 
   return (
-    // StyledBoard styles
-    <div className="grid grid-rows-[repeat(20,30px)] grid-cols-[repeat(10,30px)] gap-[1px] bg-[#111] p-2.5 rounded">
-      {displayGrid.map((row, y) =>
-        row.map((cell, x) => (
-          // Cell styles
-          <div
-            key={`${y}-${x}`}
-            className="w-[30px] h-[30px] border-[1px] border-[#333]"
-            style={{ backgroundColor: PIECE_COLORS[cell as keyof typeof PIECE_COLORS] }}
-          />
-        ))
-      )}
+    <div className="relative">
+      <div className="grid grid-rows-[repeat(20,30px)] grid-cols-[repeat(10,30px)] gap-[1px] bg-[#111] p-2.5 rounded">
+        {displayGrid.map((row, y) =>
+          row.map((cell, x) => (
+            <div
+              key={`${y}-${x}`}
+              className="w-[30px] h-[30px] border-[1px] border-[#333]"
+              style={{
+                backgroundColor: cell ? PIECE_COLORS[cell] : '#000',
+                transition: 'background-color 0.1s'
+              }}
+            />
+          ))
+        )}
+      </div>
+
+      {isGameOver && <GameOverModal score={score} onRestart={onRestart} />}
     </div>
   )
 }

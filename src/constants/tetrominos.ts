@@ -36,12 +36,13 @@ export const SHAPES = {
   ]
 } as const
 
-export const COLORS = {
-  I: '#00f0f0',
-  L: '#f0a000',
-  J: '#0000f0',
-  O: '#f0f000',
-  Z: '#f00000',
-  S: '#00f000',
-  T: '#a000f0'
+export const PIECE_COLORS = {
+  1: '#00f0f0', // I
+  2: '#0000f0', // J
+  3: '#f0a000', // L
+  4: '#f0f000', // O
+  5: '#00f000', // S
+  6: '#a000f0', // T
+  7: '#f00000', // Z
+  0: '#000' // 空
 }

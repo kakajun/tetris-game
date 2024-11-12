@@ -129,7 +129,7 @@ export const useTetris = () => {
   }, [gameState, isValidMove, rotatePiece])
 
   const mergePieceToGrid = useCallback(() => {
-    // 深拷贝网格数组
+    // 确保正确创建网格的深拷贝
     const newGrid = gameState.grid.map((row) => [...row])
     const piece = gameState.currentPiece
     const pos = gameState.currentPosition
@@ -138,37 +138,62 @@ export const useTetris = () => {
 
     for (let y = 0; y < piece.length; y++) {
       for (let x = 0; x < piece[y].length; x++) {
-        if (piece[y][x] && pos.y + y >= 0) {
-          newGrid[pos.y + y][pos.x + x] = piece[y][x]
+        if (piece[y][x]) {
+          // 注意这里的条件
+          const newY = pos.y + y
+          const newX = pos.x + x
+          if (newY >= 0 && newY < GRID_HEIGHT && newX >= 0 && newX < GRID_WIDTH) {
+            newGrid[newY][newX] = piece[y][x]
+          }
         }
       }
     }
 
-    // 确保在 drop 函数中使用这个新网格
     return newGrid
   }, [gameState])
 
-  // 修改 clearLines 方法，使用 calculateScore
-  const clearLines = useCallback(() => {
-    // 只过滤完整的行（所有格子都被填满的行）
-    const newGrid = gameState.grid.filter((row) => !row.every((cell) => cell !== 0))
-    const clearedLines = GRID_HEIGHT - newGrid.length
-    const score = calculateScore(clearedLines)
+  // 修改 clearLines 函数接收合并后的网格作为参数
+  const clearLines = useCallback(
+    (grid: number[][]) => {
+      // 创建网格的深拷贝
+      const newGrid = grid.map((row) => [...row])
+      let linesCleared = 0
 
-    // 补充新的空行
-    while (newGrid.length < GRID_HEIGHT) {
-      newGrid.unshift(Array(GRID_WIDTH).fill(0))
-    }
+      // 从底部向上检查每一行
+      for (let y = GRID_HEIGHT - 1; y >= 0; y--) {
+        // 检查当前行是否已填满
+        const isLineFull = newGrid[y].every((cell) => cell > 0)
 
-    return {
-      newGrid,
-      score,
-      newLevel: Math.floor((gameState.score + score) / 1000) + 1
-    }
-  }, [gameState.grid, gameState.score])
+        if (isLineFull) {
+          linesCleared++
+          // 将当前行以上的所有行向下移动
+          for (let moveY = y; moveY > 0; moveY--) {
+            newGrid[moveY] = [...newGrid[moveY - 1]]
+          }
+          // 在顶部添加新的空行
+          newGrid[0] = Array(GRID_WIDTH).fill(0)
+          // 由于当前行已被上方的行替换，需要重新检查当前位置
+          y++
+        }
+      }
+
+      console.log('Lines cleared:', linesCleared) // 调试日志
+      console.log('Grid before clearing:', grid) // 调试日志
+      console.log('Grid after clearing:', newGrid) // 调试日志
+
+      const score = calculateScore(linesCleared)
+      const newLevel = Math.floor((gameState.score + score) / 1000) + 1
+
+      return {
+        newGrid,
+        score,
+        newLevel
+      }
+    },
+    [gameState.score]
+  )
 
   const drop = useCallback(() => {
-    console.log('Drop called', gameState) // 添加调试日志
     if (gameState.isGameOver || gameState.isPaused || !gameState.currentPiece) return
 
     const newPosition = {
@@ -177,29 +202,29 @@ export const useTetris = () => {
     }
 
     if (isValidMove(newPosition, gameState.currentPiece)) {
-      // 如果可以继续下落
       setGameState((prev) => ({
         ...prev,
         currentPosition: newPosition
       }))
     } else {
-      // 如果不能继续下落，固定当前方块并生成新方块
-      const newGrid = mergePieceToGrid()
-      const { newGrid: clearedGrid, score, newLevel } = clearLines()
+      // 当方块不能继续下落时
+      const mergedGrid = mergePieceToGrid()
+      console.log('Merged grid:', mergedGrid) // 调试日志
 
-      const nextPiece = gameState.nextPiece || generateNewPiece() // 使用已经生成的下一个方块
+      const { newGrid, score, newLevel } = clearLines(mergedGrid)
+      console.log('After clearing lines:', newGrid) // 调试日志
+
+      const nextPiece = gameState.nextPiece || generateNewPiece()
       const startPosition = { x: Math.floor(GRID_WIDTH / 2) - 1, y: 0 }
-
-      // 检查新方块是否可以放置
       const isGameOver = !isValidMove(startPosition, nextPiece)
 
       if (!isGameOver) {
         setGameState((prev) => ({
           ...prev,
-          grid: clearedGrid,
+          grid: newGrid,
           currentPiece: nextPiece,
           currentPosition: startPosition,
-          nextPiece: generateNewPiece(), // 生成新的下一个方块
+          nextPiece: generateNewPiece(),
           score: prev.score + score,
           level: newLevel
         }))
@@ -214,7 +239,6 @@ export const useTetris = () => {
 
   // 修改 startGame 函数
   const startGame = useCallback(() => {
-    console.log('Starting game...') // 添加调试日志
     const firstPiece = generateNewPiece()
     const secondPiece = generateNewPiece()
     const startPosition = { x: Math.floor(GRID_WIDTH / 2) - 1, y: 0 }
@@ -244,14 +268,8 @@ export const useTetris = () => {
     startGame()
   }, [startGame])
 
-  // 修改游戏主循环
+  // 修改戏主循环
   useEffect(() => {
-    console.log('Game loop effect', {
-      isGameOver: gameState.isGameOver,
-      isPaused: gameState.isPaused,
-      currentPiece: gameState.currentPiece
-    }) // 添加调试日志
-
     if (gameState.isGameOver || gameState.isPaused || !gameState.currentPiece) return
 
     const speed = Math.max(100, 1000 - (gameState.level - 1) * 100) // 随等级加快
@@ -308,27 +326,32 @@ export const useTetris = () => {
   const hardDrop = useCallback(() => {
     if (gameState.isGameOver || gameState.isPaused || !gameState.currentPiece) return
 
-    let newY = gameState.currentPosition.y
-
-    // 找到方块可以下落的最低位置
-    while (isValidMove({ x: gameState.currentPosition.x, y: newY + 1 }, gameState.currentPiece)) {
-      newY++
+    // 计算最终位置
+    let finalY = gameState.currentPosition.y
+    while (
+      isValidMove(
+        {
+          x: gameState.currentPosition.x,
+          y: finalY + 1
+        },
+        gameState.currentPiece
+      )
+    ) {
+      finalY++
     }
 
-    // 直接将方块放置到最低位置
-    const newPosition = {
+    // 直接更新到最终位置
+    const finalPosition = {
       x: gameState.currentPosition.x,
-      y: newY
+      y: finalY
     }
 
+    // 使用最终位置更新当前方块位置
     setGameState((prev) => ({
       ...prev,
-      currentPosition: newPosition
+      currentPosition: finalPosition
     }))
-
-    // 立即触发一次 drop 来固定方块
-    drop()
-  }, [gameState, isValidMove, drop])
+  }, [gameState, isValidMove])
 
   return {
     gameState,
