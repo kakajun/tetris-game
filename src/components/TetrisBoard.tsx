@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { PIECE_COLORS } from '../constants/tetrominos'
 import { GameOverModal } from './GameOverModal'
 
@@ -20,6 +20,13 @@ export const TetrisBoard: React.FC<TetrisBoardProps> = ({
   onRestart
 }) => {
   const displayGrid = grid.map((row) => [...row])
+  const [showGameOver, setShowGameOver] = useState(false)
+
+  useEffect(() => {
+    if (isGameOver) {
+      setShowGameOver(true)
+    }
+  }, [isGameOver])
 
   if (currentPiece) {
     for (let y = 0; y < currentPiece.length; y++) {
@@ -52,7 +59,7 @@ export const TetrisBoard: React.FC<TetrisBoardProps> = ({
         )}
       </div>
 
-      {isGameOver && <GameOverModal score={score} onRestart={onRestart} />}
+      {showGameOver && <GameOverModal score={score} onRestart={onRestart} />}
     </div>
   )
 }
