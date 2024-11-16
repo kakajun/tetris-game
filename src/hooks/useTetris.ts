@@ -128,29 +128,28 @@ export const useTetris = () => {
     }
   }, [gameState, isValidMove, rotatePiece])
 
-  const mergePieceToGrid = useCallback(() => {
-    // 确保正确创建网格的深拷贝
-    const newGrid = gameState.grid.map((row) => [...row])
-    const piece = gameState.currentPiece
-    const pos = gameState.currentPosition
+  const mergePieceToGrid = useCallback(
+    (position: Position, piece: Shape) => {
+      const newGrid = gameState.grid.map((row) => [...row])
 
-    if (!piece) return newGrid
+      if (!piece) return newGrid
 
-    for (let y = 0; y < piece.length; y++) {
-      for (let x = 0; x < piece[y].length; x++) {
-        if (piece[y][x]) {
-          // 注意这里的条件
-          const newY = pos.y + y
-          const newX = pos.x + x
-          if (newY >= 0 && newY < GRID_HEIGHT && newX >= 0 && newX < GRID_WIDTH) {
-            newGrid[newY][newX] = piece[y][x]
+      for (let y = 0; y < piece.length; y++) {
+        for (let x = 0; x < piece[y].length; x++) {
+          if (piece[y][x]) {
+            const newY = position.y + y
+            const newX = position.x + x
+            if (newY >= 0 && newY < GRID_HEIGHT && newX >= 0 && newX < GRID_WIDTH) {
+              newGrid[newY][newX] = piece[y][x]
+            }
           }
         }
       }
-    }
 
-    return newGrid
-  }, [gameState])
+      return newGrid
+    },
+    [gameState.grid]
+  )
 
   // 修改 clearLines 函数接收合并后的网格作为参数
   const clearLines = useCallback(
@@ -208,11 +207,8 @@ export const useTetris = () => {
       }))
     } else {
       // 当方块不能继续下落时
-      const mergedGrid = mergePieceToGrid()
-      console.log('Merged grid:', mergedGrid) // 调试日志
-
+      const mergedGrid = mergePieceToGrid(gameState.currentPosition, gameState.currentPiece)
       const { newGrid, score, newLevel } = clearLines(mergedGrid)
-      console.log('After clearing lines:', newGrid) // 调试日志
 
       const nextPiece = gameState.nextPiece || generateNewPiece()
       const startPosition = { x: Math.floor(GRID_WIDTH / 2) - 1, y: 0 }
@@ -326,7 +322,6 @@ export const useTetris = () => {
   const hardDrop = useCallback(() => {
     if (gameState.isGameOver || gameState.isPaused || !gameState.currentPiece) return
 
-    // 计算最终位置
     let finalY = gameState.currentPosition.y
     while (
       isValidMove(
@@ -340,18 +335,36 @@ export const useTetris = () => {
       finalY++
     }
 
-    // 直接更新到最终位置
     const finalPosition = {
       x: gameState.currentPosition.x,
       y: finalY
     }
 
-    // 使用最终位置更新当前方块位置
-    setGameState((prev) => ({
-      ...prev,
-      currentPosition: finalPosition
-    }))
-  }, [gameState, isValidMove])
+    // 合并方块到网格
+    const newGrid = mergePieceToGrid(finalPosition, gameState.currentPiece)
+    const { newGrid: clearedGrid, score, newLevel } = clearLines(newGrid)
+
+    const nextPiece = gameState.nextPiece || generateNewPiece()
+    const startPosition = { x: Math.floor(GRID_WIDTH / 2) - 1, y: 0 }
+    const isGameOver = !isValidMove(startPosition, nextPiece)
+
+    if (!isGameOver) {
+      setGameState((prev) => ({
+        ...prev,
+        grid: clearedGrid,
+        currentPiece: nextPiece,
+        currentPosition: startPosition,
+        nextPiece: generateNewPiece(),
+        score: prev.score + score,
+        level: newLevel
+      }))
+    } else {
+      setGameState((prev) => ({
+        ...prev,
+        isGameOver: true
+      }))
+    }
+  }, [gameState, isValidMove, mergePieceToGrid, clearLines, generateNewPiece])
 
   return {
     gameState,
