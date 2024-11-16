@@ -37,9 +37,11 @@ export const useTetris = () => {
     nextPiece: null,
     score: 0,
     level: 1,
-    isGameOver: true,
+    isGameOver: false,
     isPaused: false
   })
+
+  const [gameOver, setGameOver] = useState<boolean>(false)
 
   const createEmptyGrid = useCallback(
     () =>
