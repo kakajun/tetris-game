@@ -41,8 +41,6 @@ export const useTetris = () => {
     isPaused: false
   })
 
-  const [gameOver, setGameOver] = useState<boolean>(false)
-
   const createEmptyGrid = useCallback(
     () =>
       Array(GRID_HEIGHT)

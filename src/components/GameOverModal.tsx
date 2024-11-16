@@ -1,13 +1,13 @@
-import React from 'react';
+import React from 'react'
 
 interface GameOverModalProps {
-  isVisible: boolean;
-  score: number;
-  onRestart: () => void;
+  isVisible: boolean
+  score: number
+  onRestart: () => void
 }
 
 export const GameOverModal: React.FC<GameOverModalProps> = ({ isVisible, score, onRestart }) => {
-  if (!isVisible) return null;
+  if (!isVisible) return null
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
@@ -22,5 +22,5 @@ export const GameOverModal: React.FC<GameOverModalProps> = ({ isVisible, score, 
         </button>
       </div>
     </div>
-  );
-};
+  )
+}
