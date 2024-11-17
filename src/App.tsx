@@ -24,6 +24,7 @@ const App: React.FC = () => {
         <div>
           <TetrisBoard
             grid={gameState.grid}
+            level={gameState.level}
             currentPiece={gameState.currentPiece}
             currentPosition={gameState.currentPosition}
             isGameOver={gameState.isGameOver}

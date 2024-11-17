@@ -37,11 +37,11 @@ export const SHAPES = {
 } as const
 
 export const PIECE_COLORS = {
+  0: '#f00000', // Z
   1: '#00f0f0', // I
   2: '#0000f0', // J
   3: '#f0a000', // L
   4: '#f0f000', // O
   5: '#00f000', // S
-  6: '#a000f0', // T
-  7: '#f00000' // Z
+  6: '#a000f0' // T
 }

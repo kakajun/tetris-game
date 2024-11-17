@@ -8,6 +8,7 @@ interface TetrisBoardProps {
   currentPosition: { x: number; y: number }
   isGameOver: boolean
   score: number
+  level: number
   onRestart: () => void
 }
 
@@ -17,6 +18,7 @@ export const TetrisBoard: React.FC<TetrisBoardProps> = ({
   currentPosition,
   isGameOver,
   score,
+  level,
   onRestart
 }) => {
   const displayGrid = grid.map((row) => [...row])
@@ -51,7 +53,7 @@ export const TetrisBoard: React.FC<TetrisBoardProps> = ({
               key={`${y}-${x}`}
               className="w-[30px] h-[30px] border-[1px] border-[#333]"
               style={{
-                backgroundColor: cell ? PIECE_COLORS[3] : '#000',
+                backgroundColor: cell ? PIECE_COLORS[level%7] : '#000',
                 transition: 'background-color 0.1s'
               }}
             />
