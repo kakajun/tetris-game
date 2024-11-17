@@ -181,7 +181,7 @@ export const useTetris = () => {
       console.log('Grid after clearing:', newGrid) // 调试日志
 
       const score = calculateScore(linesCleared)
-      const newLevel = Math.floor((gameState.score + score) / 1000) + 1
+      const newLevel = Math.floor((gameState.score + score) / 100) + 1
 
       return {
         newGrid,
@@ -241,7 +241,7 @@ export const useTetris = () => {
 
     setGameState({
       grid: createEmptyGrid(),
-      currentPiece: firstPiece, // 确保有初始方块
+      currentPiece: firstPiece,
       currentPosition: startPosition,
       nextPiece: secondPiece,
       score: 0,

@@ -1,12 +1,12 @@
 import React from 'react'
 
 interface GameOverModalProps {
-  isVisible: boolean
+  isVisible?: boolean
   score: number
   onRestart: () => void
 }
 
-export const GameOverModal: React.FC<GameOverModalProps> = ({ isVisible, score, onRestart }) => {
+export const GameOverModal: React.FC<GameOverModalProps> = ({ isVisible=false, score, onRestart }) => {
   if (!isVisible) return null
 
   return (
