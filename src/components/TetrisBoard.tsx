@@ -53,7 +53,7 @@ export const TetrisBoard: React.FC<TetrisBoardProps> = ({
               key={`${y}-${x}`}
               className="w-[30px] h-[30px] border-[1px] border-[#333]"
               style={{
-                backgroundColor: cell ? PIECE_COLORS[level%7] : '#000',
+                backgroundColor: cell ? PIECE_COLORS[level % 7] : '#000',
                 transition: 'background-color 0.1s'
               }}
             />
