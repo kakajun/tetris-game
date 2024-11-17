@@ -6,7 +6,11 @@ interface GameOverModalProps {
   onRestart: () => void
 }
 
-export const GameOverModal: React.FC<GameOverModalProps> = ({ isVisible=false, score, onRestart }) => {
+export const GameOverModal: React.FC<GameOverModalProps> = ({
+  isVisible = false,
+  score,
+  onRestart
+}) => {
   if (!isVisible) return null
 
   return (
